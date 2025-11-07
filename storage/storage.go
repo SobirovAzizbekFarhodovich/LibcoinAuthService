@@ -16,5 +16,5 @@ type UserI interface{
 	ChangePassword(req *pb.ChangePasswordRequest)(*pb.ChangePasswordResponse, error)
 	ForgotPassword(req *pb.ForgotPasswordRequest)(*pb.ForgotPasswordResponse, error)
 	ResetPassword(req *pb.ResetPasswordRequest)(*pb.ResetPasswordResponse, error)
-
+	GetUserByEmail(email string) (*pb.UpdateUserResponse, error)
 }

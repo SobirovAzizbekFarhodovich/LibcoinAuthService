@@ -53,9 +53,9 @@ func (u *UserStorage) LoginUser(user *pb.LoginUserRequest)(*pb.LoginUserResponse
 		&res.Id,
 		&res.Email,
 		&res.Password,
-		&res.Role,
 		&res.Username,
-	)
+		&res.Role,
+	)	
 	if err != nil{
 		if err == sql.ErrNoRows {
 			return nil, fmt.Errorf("invalid email or password")
@@ -115,8 +115,8 @@ func (u *UserStorage) DeleteUser(id *pb.DeleteUserRequest)(*pb.DeleteUserRespons
 	return &pb.DeleteUserResponse{}, nil
 }
 
-func (u *UserStorage) GetById(id *pb.GetByIdRequest)(*pb.GetByIdResponse, error){
-	query := `SELECT id , email, username, role FROM users WHERE id = $%1 AND deleted_at = 0`
+func (u *UserStorage) GetByIdUser(id *pb.GetByIdRequest)(*pb.GetByIdResponse, error){
+	query := `SELECT id, email, username, role FROM users WHERE id = $1 AND deleted_at = 0`
 	row := u.db.QueryRow(query, id.Id)
 	user := pb.GetByIdResponse{}
 	err := row.Scan(
@@ -137,7 +137,7 @@ func (u *UserStorage) GetById(id *pb.GetByIdRequest)(*pb.GetByIdResponse, error)
 }
 
 func (u *UserStorage) GetAllUsers(req *pb.GetAllUsersRequest)(*pb.GetAllUsersResponse, error){
-	query := `SELECT id, email, username, role FROM users WHERE deleted_at = 0 LIMIT = $1 OFFSET = $2`
+	query := `SELECT id, email, username, role FROM users WHERE deleted_at = 0 LIMIT $1 OFFSET $2`
 	rows, err := u.db.Query(query, req.Limit, req.Offset)
 	if err != nil{
 		return nil, err
@@ -216,4 +216,18 @@ func (u *UserStorage) ChangePassword(req *pb.ChangePasswordRequest)(*pb.ChangePa
 	}
 	return &pb.ChangePasswordResponse{}, nil
 
+}
+
+func (u *UserStorage) GetUserByEmail(email string) (*pb.UpdateUserResponse, error){
+	var user pb.UpdateUserResponse
+	query := "SELECT id, email, username FROM users WHERE email = $1 AND deleted_at = 0"
+	row := u.db.QueryRow(query, email)
+	err := row.Scan(&user.Id, &user.Email, &user.Username)
+	if err != nil{
+		if err == sql.ErrNoRows{
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &user, nil
 }
